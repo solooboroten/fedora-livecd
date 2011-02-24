@@ -4,7 +4,7 @@
 
 Summary: Tools for building live CDs
 Name: livecd-tools
-Version: 13.1
+Version: 13.2
 Release: 1%{?dist}
 Epoch: 1
 License: GPLv2
@@ -92,6 +92,21 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/imgcreate/*.pyc
 
 %changelog
+* Wed Feb 23 2011 Brian C. Lane <bcl@redhat.com> - 13.2-1
+- Version 13.2 (bcl)
+- Print reason for sudden exit (bcl)
+- Fix skipcopy usage with DVD iso (#644194) (bmj001)
+- Move selinux relabel to after %post (#648591) (bcl)
+- Add support for virtio disks to livecd (#672936) (bcl)
+- Check return value on udevadm (#637258) (bcl)
+- Source may be a file or a block device, mount accordingly (bcl)
+- Align start of partition at 1MiB (#668967) (bcl)
+- Check for one big initrd.img (#671900) (bcl)
+- Update documentation for xz availability. (bruno)
+- Change releasever to a command line option (#667474) (bcl)
+- Assign a device-mapper UUID w/ subsystem prefix to the dm snapshot. (dlehman)
+- Fix git URLs to match reality. (dlehman)
+
 * Wed Dec 22 2010 Brian C. Lane <bcl@redhat.com> - 13.1-1
 - Version 13.1 (bcl)
 - Trap copyFile errors (#663849) (fgrose)
