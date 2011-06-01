@@ -4,7 +4,7 @@
 
 Summary: Tools for building live CDs
 Name: livecd-tools
-Version: 13.2
+Version: 13.3
 Release: 1%{?dist}
 Epoch: 1
 License: GPLv2
@@ -92,6 +92,10 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/imgcreate/*.pyc
 
 %changelog
+* Wed Jun 01 2011 Brian C. Lane <bcl@redhat.com> - 13.3-1
+- Version 13.3 (bcl)
+- extlinux doesn't support ext4 or btrfs on F13 (#709778) (bcl)
+
 * Wed Feb 23 2011 Brian C. Lane <bcl@redhat.com> - 13.2-1
 - Version 13.2 (bcl)
 - Print reason for sudden exit (bcl)
