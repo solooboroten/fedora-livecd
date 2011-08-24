@@ -4,7 +4,7 @@
 
 Summary: Tools for building live CDs
 Name: livecd-tools
-Version: 13.3
+Version: 13.4
 Release: 1%{?dist}
 Epoch: 1
 License: GPLv2
@@ -22,6 +22,7 @@ Requires: mkisofs
 Requires: isomd5sum
 Requires: parted
 Requires: pyparted
+Requires: util-linux
 %ifarch %{ix86} x86_64
 Requires: syslinux
 Requires: /sbin/extlinux
@@ -92,6 +93,17 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/imgcreate/*.pyc
 
 %changelog
+* Tue Aug 23 2011 Brian C. Lane <bcl@redhat.com> - 13.4-1
+- Version 13.4 (bcl)
+- Use copyFile on the iso (bcl)
+- Add EFI support to netboot and DVD iso (bcl)
+- Use rsync to copy if available (bcl)
+- Support /EFI/BOOT or /EFI/boot (#688258) (bcl)
+- gptmbr can be written directly to the mbr (bcl)
+- Ensure previous filesystems are wiped when formatting (#712553) (bcl)
+- Turn on the legacy_boot flag for EFI (#680563) (bcl)
+- Copy updates and product image files (bcl)
+
 * Wed Jun 01 2011 Brian C. Lane <bcl@redhat.com> - 13.3-1
 - Version 13.3 (bcl)
 - extlinux doesn't support ext4 or btrfs on F13 (#709778) (bcl)
