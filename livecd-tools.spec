@@ -5,7 +5,7 @@
 Summary: Tools for building live CDs
 Name: livecd-tools
 Version: 13.4
-Release: 1%{?dist}
+Release: 2%{?dist}
 Epoch: 1
 License: GPLv2
 Group: System Environment/Base
@@ -16,6 +16,7 @@ URL: http://git.fedorahosted.org/git/livecd
 # make dist
 # scp livecd*.tar.bz2 fedorahosted.org:livecd
 Source0: http://fedorahosted.org/releases/l/i/livecd/%{name}-%{version}.tar.bz2
+Patch0: lokkit-fw-no-reset.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: python-imgcreate = %{epoch}:%{version}-%{release}
 Requires: mkisofs
@@ -61,6 +62,7 @@ like live image or appliances.
 
 %prep
 %setup -q
+%patch0 -p1 -b .fwfix
 
 %build
 make
@@ -93,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/imgcreate/*.pyc
 
 %changelog
+* Tue Aug 28 2012 Seth Vidal <skvidal at fedoraproject.org>
+- fix firewalls being reset when setting selinux state from imgcreate
+
 * Tue Aug 23 2011 Brian C. Lane <bcl@redhat.com> - 13.4-1
 - Version 13.4 (bcl)
 - Use copyFile on the iso (bcl)
