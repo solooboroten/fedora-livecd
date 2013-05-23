@@ -4,8 +4,8 @@
 
 Summary: Tools for building live CDs
 Name: livecd-tools
-Version: 13.4
-Release: 2%{?dist}
+Version: 13.4.4
+Release: 1%{?dist}
 Epoch: 1
 License: GPLv2
 Group: System Environment/Base
@@ -95,6 +95,10 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/imgcreate/*.pyc
 
 %changelog
+* Thu May 23 2013 Brian C. Lane <bcl@redhat.com> 13.4-2
+- Version 13.4.4 (bcl)
+- Avoid setting empty root password (#962493) (thoger)
+
 * Tue Aug 28 2012 Seth Vidal <skvidal at fedoraproject.org>
 - fix firewalls being reset when setting selinux state from imgcreate
 
