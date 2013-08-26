@@ -77,6 +77,9 @@ class LiveImageCreatorBase(LoopImageCreator):
 
         self._isofstype = "iso9660"
 
+        self.noudevsync = False
+        """Do not synchronise with udev when creating, renaming or removing devices."""
+
     #
     # Hooks for subclasses
     #
@@ -318,7 +321,7 @@ class LiveImageCreatorBase(LoopImageCreator):
             self._resparse()
 
             if not self.skip_minimize:
-                create_image_minimizer(self.__isodir + "/LiveOS/osmin.img", self._image, self.compress_type)
+                create_image_minimizer(self.__isodir + "/LiveOS/osmin.img", self._image, self.compress_type, noudevsync = self.noudevsync)
 
             if self.skip_compression:
                 shutil.move(self._image, self.__isodir + "/LiveOS/ext3fs.img")

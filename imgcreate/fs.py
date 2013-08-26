@@ -499,9 +499,10 @@ class ExtDiskMount(DiskMount):
         return minsize
 
 class DeviceMapperSnapshot(object):
-    def __init__(self, imgloop, cowloop):
+    def __init__(self, imgloop, cowloop, noudevsync = False):
         self.imgloop = imgloop
         self.cowloop = cowloop
+        self.noudevsync = noudevsync
 
         self.__created = False
         self.__name = None
@@ -530,21 +531,32 @@ class DeviceMapperSnapshot(object):
 
         args = ["/sbin/dmsetup", "create", self.__name,
                 "--uuid", "LIVECD-%s" % self.__name, "--table", table]
+        if self.noudevsync:
+            args += ["--noudevsync"]
+
         if subprocess.call(args) != 0:
             self.cowloop.cleanup()
             self.imgloop.cleanup()
             raise SnapshotError("Could not create snapshot device using: " +
                                 string.join(args, " "))
 
+        if self.noudevsync:
+            # sleep to try to avoid any dm shenanigans
+            time.sleep(2)
+
         self.__created = True
 
-    def remove(self, ignore_errors = False):
+    def remove(self, ignore_errors = False, noudevsync = False):
         if not self.__created:
             return
 
         # sleep to try to avoid any dm shenanigans
         time.sleep(2)
-        rc = subprocess.call(["/sbin/dmsetup", "remove", self.__name])
+        args = ["/sbin/dmsetup", "remove", self.__name]
+        if self.noudevsync:
+            args += ["--noudevsync"]
+
+        rc = subprocess.call(args)
         if not ignore_errors and rc != 0:
             raise SnapshotError("Could not remove snapshot device")
 
@@ -578,7 +590,7 @@ class DeviceMapperSnapshot(object):
         except ValueError:
             raise SnapshotError("Failed to parse dmsetup status: " + out)
 
-def create_image_minimizer(path, image, compress_type, target_size = None):
+def create_image_minimizer(path, image, compress_type, target_size = None, noudevsync = False):
     """
     Builds a copy-on-write image which can be used to
     create a device-mapper snapshot of an image where
@@ -600,7 +612,7 @@ def create_image_minimizer(path, image, compress_type, target_size = None):
     cowloop = SparseLoopbackDisk(os.path.join(os.path.dirname(path), "osmin"),
                                  64L * 1024L * 1024L)
 
-    snapshot = DeviceMapperSnapshot(imgloop, cowloop)
+    snapshot = DeviceMapperSnapshot(imgloop, cowloop, noudevsync = noudevsync)
 
     try:
         snapshot.create()
