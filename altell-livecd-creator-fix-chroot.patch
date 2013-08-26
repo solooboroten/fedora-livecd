@@ -1,0 +1,113 @@
+diff --git a/imgcreate/fs.py b/imgcreate/fs.py
+index 67d4c3d..ba699a1 100644
+--- a/imgcreate/fs.py
++++ b/imgcreate/fs.py
+@@ -499,9 +499,10 @@ class ExtDiskMount(DiskMount):
+         return minsize
+ 
+ class DeviceMapperSnapshot(object):
+-    def __init__(self, imgloop, cowloop):
++    def __init__(self, imgloop, cowloop, noudevsync = False):
+         self.imgloop = imgloop
+         self.cowloop = cowloop
++        self.noudevsync = noudevsync
+ 
+         self.__created = False
+         self.__name = None
+@@ -530,21 +531,32 @@ class DeviceMapperSnapshot(object):
+ 
+         args = ["/sbin/dmsetup", "create", self.__name,
+                 "--uuid", "LIVECD-%s" % self.__name, "--table", table]
++        if self.noudevsync:
++            args += ["--noudevsync"]
++
+         if subprocess.call(args) != 0:
+             self.cowloop.cleanup()
+             self.imgloop.cleanup()
+             raise SnapshotError("Could not create snapshot device using: " +
+                                 string.join(args, " "))
+ 
++        if self.noudevsync:
++            # sleep to try to avoid any dm shenanigans
++            time.sleep(2)
++
+         self.__created = True
+ 
+-    def remove(self, ignore_errors = False):
++    def remove(self, ignore_errors = False, noudevsync = False):
+         if not self.__created:
+             return
+ 
+         # sleep to try to avoid any dm shenanigans
+         time.sleep(2)
+-        rc = subprocess.call(["/sbin/dmsetup", "remove", self.__name])
++        args = ["/sbin/dmsetup", "remove", self.__name]
++        if self.noudevsync:
++            args += ["--noudevsync"]
++
++        rc = subprocess.call(args)
+         if not ignore_errors and rc != 0:
+             raise SnapshotError("Could not remove snapshot device")
+ 
+@@ -578,7 +590,7 @@ class DeviceMapperSnapshot(object):
+         except ValueError:
+             raise SnapshotError("Failed to parse dmsetup status: " + out)
+ 
+-def create_image_minimizer(path, image, compress_type, target_size = None):
++def create_image_minimizer(path, image, compress_type, target_size = None, noudevsync = False):
+     """
+     Builds a copy-on-write image which can be used to
+     create a device-mapper snapshot of an image where
+@@ -600,7 +612,7 @@ def create_image_minimizer(path, image, compress_type, target_size = None):
+     cowloop = SparseLoopbackDisk(os.path.join(os.path.dirname(path), "osmin"),
+                                  64L * 1024L * 1024L)
+ 
+-    snapshot = DeviceMapperSnapshot(imgloop, cowloop)
++    snapshot = DeviceMapperSnapshot(imgloop, cowloop, noudevsync = noudevsync)
+ 
+     try:
+         snapshot.create()
+diff --git a/imgcreate/live.py b/imgcreate/live.py
+index 783d1db..40ca1fb 100644
+--- a/imgcreate/live.py
++++ b/imgcreate/live.py
+@@ -77,6 +77,9 @@ class LiveImageCreatorBase(LoopImageCreator):
+ 
+         self._isofstype = "iso9660"
+ 
++        self.noudevsync = False
++        """Do not synchronise with udev when creating, renaming or removing devices."""
++
+     #
+     # Hooks for subclasses
+     #
+@@ -318,7 +321,7 @@ class LiveImageCreatorBase(LoopImageCreator):
+             self._resparse()
+ 
+             if not self.skip_minimize:
+-                create_image_minimizer(self.__isodir + "/LiveOS/osmin.img", self._image, self.compress_type)
++                create_image_minimizer(self.__isodir + "/LiveOS/osmin.img", self._image, self.compress_type, noudevsync = self.noudevsync)
+ 
+             if self.skip_compression:
+                 shutil.move(self._image, self.__isodir + "/LiveOS/ext3fs.img")
+diff --git a/tools/livecd-creator b/tools/livecd-creator
+index 6841c94..96064b8 100755
+--- a/tools/livecd-creator
++++ b/tools/livecd-creator
+@@ -48,6 +48,8 @@ def parse_options(args):
+     imgopt.add_option("", "--releasever", type="string", dest="releasever",
+                       default=None,
+                       help="Value to substitute for $releasever in kickstart repo urls")
++    imgopt.add_option("", "--noudevsync", action = "store_true", dest="noudevsync",
++                      help="Do not synchronise with udev when creating, renaming or removing devices")
+     parser.add_option_group(imgopt)
+ 
+     # options related to the config of your system
+@@ -125,6 +127,7 @@ def main():
+     creator.compress_type = options.compress_type
+     creator.skip_compression = options.skip_compression
+     creator.skip_minimize = options.skip_minimize
++    creator.noudevsync = options.noudevsync
+     if options.cachedir:
+         options.cachedir = os.path.abspath(options.cachedir)
+ 

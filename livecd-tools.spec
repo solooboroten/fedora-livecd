@@ -5,7 +5,7 @@
 Summary: Tools for building live CDs
 Name: livecd-tools
 Version: 13.4.4
-Release: 2%{?dist}
+Release: 2%{?dist}.altell1.1
 Epoch: 1
 License: GPLv2
 Group: System Environment/Base
@@ -19,6 +19,7 @@ URL: http://git.fedorahosted.org/git/livecd
 # Fix certificate common name error:
 Source0: https://download.fedorahosted.org/releases/l/i/livecd/%{name}-%{version}.tar.bz2
 Patch0: lokkit-fw-no-reset.patch
+Patch1: altell-livecd-creator-fix-chroot.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: python-imgcreate = %{epoch}:%{version}-%{release}
 Requires: mkisofs
@@ -65,6 +66,7 @@ like live image or appliances.
 %prep
 %setup -q
 %patch0 -p1 -b .fwfix
+%patch1 -p1 -b .chrootfix
 
 %build
 make
@@ -98,6 +100,9 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/imgcreate/*.pyc
 
 %changelog
+* Wed Aug 28 2013 Aleksey Avdeev <avdeev@altell.ru> 13.4.4-2.el6.altell1.1
+- Fix livecd-creator: add --noudevsync option (#1001063)
+
 * Thu May 23 2013 Brian C. Lane <bcl@redhat.com> 13.4.4-2
 - Version 13.4.4 (bcl)
 - Avoid setting empty root password (#962493) (thoger)
